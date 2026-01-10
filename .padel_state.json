@@ -55,12 +55,6 @@
   ],
   [
     "4PADEL MARVILLE",
-    "09/01/2026",
-    "17:00",
-    "P100 Soirée"
-  ],
-  [
-    "4PADEL MARVILLE",
     "20/02/2026",
     "17:00",
     "P100 Road to Marrakech"
@@ -97,7 +91,31 @@
   ],
   [
     "4PADEL VAIRES TORCY",
+    "02/02/2026",
+    "17:00",
+    "P250 Soirée - 4PADEL Vaires Torcy"
+  ],
+  [
+    "4PADEL VAIRES TORCY",
+    "09/02/2026",
+    "18:00",
+    "P100 FEMMES SOIRÉE - 4PADEL VAIRES TORCY"
+  ],
+  [
+    "4PADEL VAIRES TORCY",
+    "12/02/2026",
+    "09:00",
+    "P100 Journée - 4PADEL Vaires Torcy"
+  ],
+  [
+    "4PADEL VAIRES TORCY",
     "15/01/2026",
+    "09:00",
+    "P100 Journée - 4PADEL Vaires Torcy"
+  ],
+  [
+    "4PADEL VAIRES TORCY",
+    "16/02/2026",
     "09:00",
     "P100 Journée - 4PADEL Vaires Torcy"
   ],
@@ -112,5 +130,11 @@
     "26/01/2026",
     "17:00",
     "P250 Soirée - 4PADEL VAIRES-TORCY"
+  ],
+  [
+    "4PADEL VAIRES TORCY",
+    "26/02/2026",
+    "17:00",
+    "P100 Soirée - 4PADEL Vaires Torcy"
   ]
 ]
