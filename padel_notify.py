@@ -4,6 +4,7 @@ import csv
 import json
 import os
 import subprocess
+import re
 import sys
 import time
 from email.message import EmailMessage
@@ -147,6 +148,30 @@ def format_row(r: Dict[str, str]) -> str:
     return f"{r.get('niveau')} {r.get('nom')} — {r.get('club')} le {r.get('date')} à {r.get('heure')}"
 
 
+def is_evening(r: Dict[str, str]) -> bool:
+    """Return True if the tournament is in the evening.
+    Criteria:
+    - If 'heure' parses to hour >= 18
+    - Fallback: 'nom' contains 'soir' (soirée/soir)
+    """
+    h = (r.get("heure") or "").strip()
+    # Try to extract hour from common formats: "20:30", "20h30", "20 h", "20"
+    # Take the first 1-2 digit number as hour
+    m = re.search(r"\b(\d{1,2})\b", h)
+    if m:
+        try:
+            hour = int(m.group(1))
+            if hour >= 18:
+                return True
+        except Exception:
+            pass
+    # Fallback on name keyword
+    name = (r.get("nom") or "").lower()
+    if "soir" in name:  # matches 'soir', 'soirée', etc.
+        return True
+    return False
+
+
 def check_once(dry_run: bool = False, send_email: bool = False, batch_email: bool = False) -> int:
     # Refresh CSV from the scraper
     ok = run_scraper()
@@ -179,8 +204,23 @@ def check_once(dry_run: bool = False, send_email: bool = False, batch_email: boo
             else:
                 if batch_email:
                     subject = f"{count} nouveau(x) tournoi(x) 4PADEL (P100/P250)"
-                    lines = [format_row(r) for r in new_rows]
-                    body = "\n".join(lines) + f"\n\nPage: {URL}"
+                    all_lines = [format_row(r) for r in new_rows]
+                    evening_lines = [format_row(r) for r in new_rows if is_evening(r)]
+                    sections = []
+                    sections.append("Tournois en soirée:")
+                    if evening_lines:
+                        sections.extend([f"- {l}" for l in evening_lines])
+                    else:
+                        sections.append("(aucun)")
+                    sections.append("")
+                    sections.append("Tous les nouveaux:")
+                    if all_lines:
+                        sections.extend([f"- {l}" for l in all_lines])
+                    else:
+                        sections.append("(aucun)")
+                    sections.append("")
+                    sections.append(f"Page: {URL}")
+                    body = "\n".join(sections)
                     ok = notify_email(cfg, subject, body)
                     if ok:
                         print("📧 Email récapitulatif envoyé.")
