@@ -8,7 +8,7 @@ import sys
 import time
 from email.message import EmailMessage
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
+from typing import Any, Dict, List, Set, Tuple
 
 CSV_PATH = Path("tournois_4padel.csv")
 STATE_PATH = Path(".padel_state.json")
@@ -79,7 +79,7 @@ def save_state(keys: Set[Tuple[str, str, str, str]]) -> None:
     data = [list(k) for k in sorted(keys)]
     STATE_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
-def load_email_config() -> Dict[str, str] | None:
+def load_email_config() -> Dict[str, Any] | None:
     if not EMAIL_CONFIG_PATH.exists():
         return None
     try:
@@ -93,13 +93,19 @@ def load_email_config() -> Dict[str, str] | None:
         print(f"⚠️ Impossible de lire .padel_email.json: {e}")
         return None
 
-def notify_email(config: Dict[str, str], subject: str, body: str) -> bool:
+def notify_email(config: Dict[str, Any], subject: str, body: str) -> bool:
     import smtplib
 
     msg = EmailMessage()
     msg["Subject"] = subject
     msg["From"] = config["from_email"]
-    msg["To"] = config["to_email"]
+    # Accept a list of recipients or a single string (comma-separated)
+    to_raw = config.get("to_email", [])
+    if isinstance(to_raw, str):
+        recipients = [e.strip() for e in to_raw.split(",") if e.strip()]
+    else:
+        recipients = [str(e).strip() for e in (to_raw or []) if str(e).strip()]
+    msg["To"] = ", ".join(recipients)
     msg.set_content(body)
 
     host = config.get("smtp_host")
@@ -113,7 +119,7 @@ def notify_email(config: Dict[str, str], subject: str, body: str) -> bool:
         if use_ssl:
             with smtplib.SMTP_SSL(host, port) as server:
                 server.login(user, password)
-                server.send_message(msg)
+                server.sendmail(config["from_email"], recipients, msg.as_string())
         else:
             with smtplib.SMTP(host, port) as server:
                 server.ehlo()
@@ -121,7 +127,7 @@ def notify_email(config: Dict[str, str], subject: str, body: str) -> bool:
                     server.starttls()
                     server.ehlo()
                 server.login(user, password)
-                server.send_message(msg)
+                server.sendmail(config["from_email"], recipients, msg.as_string())
         return True
     except Exception as e:
         print(f"⚠️ Échec envoi email: {e}")

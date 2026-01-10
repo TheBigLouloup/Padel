@@ -1,4 +1,6 @@
 name: Padel Notifier
+permissions:
+  contents: write
 
 on:
   schedule:
@@ -52,13 +54,15 @@ jobs:
               if v is None:
                   return default
               return str(v).lower() in ("1","true","yes","on")
+          # Support comma-separated recipients via TO_EMAIL secret
+          to_list = [e.strip() for e in os.environ.get("TO_EMAIL", "").split(",") if e.strip()]
           cfg = {
               "smtp_host": os.environ.get("SMTP_HOST", ""),
               "smtp_port": int(os.environ.get("SMTP_PORT", "587")),
               "smtp_user": os.environ.get("SMTP_USER", ""),
               "smtp_password": os.environ.get("SMTP_PASSWORD", ""),
               "from_email": os.environ.get("FROM_EMAIL", ""),
-              "to_email": os.environ.get("TO_EMAIL", ""),
+            "to_email": to_list or os.environ.get("TO_EMAIL", ""),
               "use_tls": as_bool(os.environ.get("USE_TLS"), True),
               "use_ssl": as_bool(os.environ.get("USE_SSL"), False),
           }
