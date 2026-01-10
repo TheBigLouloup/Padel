@@ -6,6 +6,11 @@ on:
   schedule:
     - cron: '*/30 * * * *'
   workflow_dispatch:
+    inputs:
+      bootstrap:
+        description: 'Reset state to send current list on manual run'
+        required: false
+        default: 'false'
 
 jobs:
   notify:
@@ -36,6 +41,12 @@ jobs:
           python -m playwright install chromium
 
       # State is persisted by committing .padel_state.json back to the repo
+
+      - name: Bootstrap: reset state (manual trigger)
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.bootstrap == 'true' }}
+        run: |
+          rm -f .padel_state.json || true
+          echo "Bootstrap: state reset, current list will be emailed as new"
 
       - name: Create email config from secrets
         env:
@@ -75,7 +86,7 @@ jobs:
         env:
           PYTHONUNBUFFERED: '1'
         run: |
-          python padel_notify.py --email
+          python padel_notify.py --email --batch-email
 
       - name: Commit updated state
         if: always()
