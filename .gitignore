@@ -9,3 +9,4 @@ __pycache__/
 # Playwright debug outputs
 debug_4padel_cards.png
 debug_4padel_no_cards.png
+.padel_email.json
