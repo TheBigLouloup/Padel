@@ -58,6 +58,7 @@ jobs:
           TO_EMAIL: ${{ secrets.TO_EMAIL }}
           USE_TLS: ${{ secrets.USE_TLS }}
           USE_SSL: ${{ secrets.USE_SSL }}
+          EMAIL_GREETING: ${{ secrets.EMAIL_GREETING }}
         run: |
           python - << 'PY'
           import json, os
@@ -67,6 +68,7 @@ jobs:
               return str(v).lower() in ("1","true","yes","on")
           # Support comma-separated recipients via TO_EMAIL secret
           to_list = [e.strip() for e in os.environ.get("TO_EMAIL", "").split(",") if e.strip()]
+          greeting = os.environ.get("EMAIL_GREETING", "")
           cfg = {
               "smtp_host": os.environ.get("SMTP_HOST", ""),
               "smtp_port": int(os.environ.get("SMTP_PORT", "587")),
@@ -76,6 +78,7 @@ jobs:
             "to_email": to_list or os.environ.get("TO_EMAIL", ""),
               "use_tls": as_bool(os.environ.get("USE_TLS"), True),
               "use_ssl": as_bool(os.environ.get("USE_SSL"), False),
+            "greeting": greeting,
           }
           with open(".padel_email.json", "w", encoding="utf-8") as f:
               json.dump(cfg, f, ensure_ascii=False, indent=2)

@@ -202,11 +202,17 @@ def check_once(dry_run: bool = False, send_email: bool = False, batch_email: boo
             if not cfg:
                 print("⚠️ Email non configuré (.padel_email.json manquant ou incomplet).")
             else:
+                greeting = (cfg.get("greeting") or "").strip()
+                if not greeting:
+                    # Friendly default if none provided
+                    greeting = "Hey padelistos !"
                 if batch_email:
                     subject = f"{count} nouveau(x) tournoi(x) 4PADEL (P100/P250)"
                     all_lines = [format_row(r) for r in new_rows]
                     evening_lines = [format_row(r) for r in new_rows if is_evening(r)]
                     sections = []
+                    sections.append(greeting)
+                    sections.append("")
                     sections.append("Tournois en soirée:")
                     if evening_lines:
                         sections.extend([f"- {l}" for l in evening_lines])
@@ -227,7 +233,7 @@ def check_once(dry_run: bool = False, send_email: bool = False, batch_email: boo
                 else:
                     for r in new_rows:
                         subject = f"Nouveau tournoi 4PADEL: {r.get('niveau')} {r.get('nom')}"
-                        body = format_row(r) + f"\n\nPage: {URL}"
+                        body = f"{greeting}\n\n" + format_row(r) + f"\n\nPage: {URL}"
                         ok = notify_email(cfg, subject, body)
                         if ok:
                             print("📧 Email envoyé:", subject)
