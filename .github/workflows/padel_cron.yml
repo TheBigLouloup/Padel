@@ -2,6 +2,11 @@ name: Padel Notifier
 permissions:
   contents: write
 
+# Public configuration (non-secret)
+env:
+  EMAIL_GREETING: "Hey Loucas et Victor"
+  EVENING_HOUR: "16"
+
 on:
   schedule:
     - cron: '*/30 * * * *'
@@ -58,7 +63,6 @@ jobs:
           TO_EMAIL: ${{ secrets.TO_EMAIL }}
           USE_TLS: ${{ secrets.USE_TLS }}
           USE_SSL: ${{ secrets.USE_SSL }}
-          EMAIL_GREETING: ${{ secrets.EMAIL_GREETING }}
         run: |
           python - << 'PY'
           import json, os
@@ -69,6 +73,7 @@ jobs:
           # Support comma-separated recipients via TO_EMAIL secret
           to_list = [e.strip() for e in os.environ.get("TO_EMAIL", "").split(",") if e.strip()]
           greeting = os.environ.get("EMAIL_GREETING", "")
+          evening_hour = int(os.environ.get("EVENING_HOUR", "16"))
           cfg = {
               "smtp_host": os.environ.get("SMTP_HOST", ""),
               "smtp_port": int(os.environ.get("SMTP_PORT", "587")),
@@ -79,6 +84,7 @@ jobs:
               "use_tls": as_bool(os.environ.get("USE_TLS"), True),
               "use_ssl": as_bool(os.environ.get("USE_SSL"), False),
             "greeting": greeting,
+            "evening_hour": evening_hour,
           }
           with open(".padel_email.json", "w", encoding="utf-8") as f:
               json.dump(cfg, f, ensure_ascii=False, indent=2)

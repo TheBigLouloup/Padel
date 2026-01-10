@@ -148,7 +148,7 @@ def format_row(r: Dict[str, str]) -> str:
     return f"{r.get('niveau')} {r.get('nom')} — {r.get('club')} le {r.get('date')} à {r.get('heure')}"
 
 
-def is_evening(r: Dict[str, str]) -> bool:
+def is_evening(r: Dict[str, str], evening_hour: int = 16) -> bool:
     """Return True if the tournament is in the evening.
     Criteria:
     - If 'heure' parses to hour >= 18
@@ -161,7 +161,7 @@ def is_evening(r: Dict[str, str]) -> bool:
     if m:
         try:
             hour = int(m.group(1))
-            if hour >= 18:
+            if hour >= evening_hour:
                 return True
         except Exception:
             pass
@@ -209,7 +209,12 @@ def check_once(dry_run: bool = False, send_email: bool = False, batch_email: boo
                 if batch_email:
                     subject = f"{count} nouveau(x) tournoi(x) 4PADEL (P100/P250)"
                     all_lines = [format_row(r) for r in new_rows]
-                    evening_lines = [format_row(r) for r in new_rows if is_evening(r)]
+                    # Determine evening threshold from config (default 16)
+                    try:
+                        evening_hour = int(cfg.get("evening_hour", 16))
+                    except Exception:
+                        evening_hour = 16
+                    evening_lines = [format_row(r) for r in new_rows if is_evening(r, evening_hour)]
                     sections = []
                     sections.append(greeting)
                     sections.append("")
