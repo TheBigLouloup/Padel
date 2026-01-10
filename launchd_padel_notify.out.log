@@ -1,7 +1,0 @@
-❌ Échec exécution scraper:
-
-Traceback (most recent call last):
-  File "/Users/bigl/Desktop/Padel/4padel.py", line 6, in <module>
-    from playwright.async_api import async_playwright
-ModuleNotFoundError: No module named 'playwright'
-

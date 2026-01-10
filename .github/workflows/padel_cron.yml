@@ -22,7 +22,12 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt || pip install playwright
+          pip install -r requirements.txt
+
+      - name: Install Playwright system deps and browser
+        run: |
+          python -m playwright install-deps
+          python -m playwright install chromium
 
       - name: Install Playwright browsers
         run: |
@@ -41,18 +46,26 @@ jobs:
           USE_TLS: ${{ secrets.USE_TLS }}
           USE_SSL: ${{ secrets.USE_SSL }}
         run: |
-          cat > .padel_email.json << 'EOF'
-          {
-            "smtp_host": "${SMTP_HOST}",
-            "smtp_port": ${SMTP_PORT:-587},
-            "smtp_user": "${SMTP_USER}",
-            "smtp_password": "${SMTP_PASSWORD}",
-            "from_email": "${FROM_EMAIL}",
-            "to_email": "${TO_EMAIL}",
-            "use_tls": ${USE_TLS:-true},
-            "use_ssl": ${USE_SSL:-false}
+          python - << 'PY'
+          import json, os
+          def as_bool(v, default=False):
+              if v is None:
+                  return default
+              return str(v).lower() in ("1","true","yes","on")
+          cfg = {
+              "smtp_host": os.environ.get("SMTP_HOST", ""),
+              "smtp_port": int(os.environ.get("SMTP_PORT", "587")),
+              "smtp_user": os.environ.get("SMTP_USER", ""),
+              "smtp_password": os.environ.get("SMTP_PASSWORD", ""),
+              "from_email": os.environ.get("FROM_EMAIL", ""),
+              "to_email": os.environ.get("TO_EMAIL", ""),
+              "use_tls": as_bool(os.environ.get("USE_TLS"), True),
+              "use_ssl": as_bool(os.environ.get("USE_SSL"), False),
           }
-          EOF
+          with open(".padel_email.json", "w", encoding="utf-8") as f:
+              json.dump(cfg, f, ensure_ascii=False, indent=2)
+          print("Wrote .padel_email.json:", cfg)
+          PY
 
       - name: Run notifier
         env:
@@ -66,7 +79,7 @@ jobs:
           if [ -f .padel_state.json ]; then
             git config user.name "github-actions"
             git config user.email "github-actions@users.noreply.github.com"
-            git add .padel_state.json
+            git add .padel_state.json tournois_4padel.csv || true
             git diff --cached --quiet || git commit -m "Update state [skip ci]"
             git push || echo "No changes to push or push failed"
           fi
