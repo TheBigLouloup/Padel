@@ -42,7 +42,7 @@ jobs:
 
       # State is persisted by committing .padel_state.json back to the repo
 
-      - name: Bootstrap: reset state (manual trigger)
+      - name: "Bootstrap: reset state (manual trigger)"
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.bootstrap == 'true' }}
         run: |
           rm -f .padel_state.json || true
